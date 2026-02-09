@@ -1,0 +1,7 @@
+[project]
+name = "LearningLangGraph"
+version = "0.1.0"
+description = "Started Learning Langgraph"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
