@@ -13,4 +13,5 @@ dependencies = [
     "langgraph>=1.0.8",
     "notebook>=7.5.3",
     "python-dotenv>=1.2.1",
+    "streamlit>=1.54.0",
 ]
