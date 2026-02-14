@@ -21,11 +21,13 @@ if user_input:
     with st.chat_message('user'):
         st.text(user_input)
 
-    # ChatBot reply with out streaming
-    response = chatBot.invoke({'messages': [HumanMessage(content=user_input)]}, config=CONFIG)
-    bot_output = response['messages'][-1].content
-    # save the message
-    st.session_state['message_history'].append({'role':'assistant', 'content': bot_output})
     with st.chat_message('assistant'):
-        st.text(bot_output)
-    
+
+        ai_message = st.write_stream(
+            message_chunk.content for message_chunk, metadata in chatBot.stream(
+                {'messages': [HumanMessage(content=user_input)]},
+                config=CONFIG,
+                stream_mode='messages'
+            )
+        )
+    st.session_state['message_history'].append({'role':'assistant', 'content': ai_message})

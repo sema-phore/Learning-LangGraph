@@ -15,6 +15,7 @@ class ChatState(TypedDict):
 # Model
 llm = ChatOpenAI(model='gpt-4o-mini')
 
+# Nodes
 def chat_node(state: ChatState):
     message = state['messages']
 
@@ -22,7 +23,7 @@ def chat_node(state: ChatState):
 
     return {'messages': [response]}
 
-# Bot
+# Creating Graph
 graph = StateGraph(ChatState)
 checkpointer = MemorySaver()
 
@@ -32,4 +33,3 @@ graph.add_edge(START, 'chat_node')
 graph.add_edge('chat_node', END)
 
 chatBot = graph.compile(checkpointer=checkpointer)
-chatBot
