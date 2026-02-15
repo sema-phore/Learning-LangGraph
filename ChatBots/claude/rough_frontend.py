@@ -1,5 +1,5 @@
 import streamlit as st
-from langgraph_backend import chatBot
+from rough_backend import chatBot, retrieve_all_threads
 from langchain_core.messages import HumanMessage
 import uuid # to generate thread id
 
@@ -67,7 +67,59 @@ def generate_conversation_name(messages, thread_id):
 
     return response['messages'][-1].content.strip()
 
-# ***************************************** Session states *****************************************
+# Load threads from database
+def load_threads_from_database():
+    """Load all existing threads from the SQLite database"""
+    try:
+        # Get all thread IDs from the database
+        db_thread_ids = retrieve_all_threads()
+        
+        loaded_threads = []
+        
+        for thread_id in db_thread_ids:
+            # Skip naming threads
+            if thread_id.endswith('_naming'):
+                continue
+            
+            # Load messages for this thread
+            messages = load_conversation(thread_id)
+            
+            # Only add threads that have messages
+            if messages:
+                # Try to generate a name from the conversation
+                temp_messages = []
+                for msg in messages:
+                    if isinstance(msg, HumanMessage):
+                        role = 'user'
+                    else:
+                        role = 'assistant'
+                    temp_messages.append({'role': role, 'content': msg.content})
+                
+                # Generate name if enough messages
+                if len(temp_messages) >= 3:
+                    try:
+                        name = generate_conversation_name(temp_messages, thread_id)
+                    except:
+                        # Use first user message as fallback
+                        name = temp_messages[0]['content'][:30] + "..."
+                else:
+                    # Use first user message as name
+                    name = temp_messages[0]['content'][:30] + "..." if temp_messages else "New Chat"
+                
+                loaded_threads.append({
+                    "id": thread_id,
+                    "name": name,
+                    "named": True
+                })
+        
+        return loaded_threads
+    
+    except Exception as e:
+        print(f"Error loading threads from database: {e}")
+        return []
+
+
+# ***************************************** Session Set-Up *****************************************
 
 # Create a session state to store the messages
 if 'message_history' not in st.session_state:
@@ -79,6 +131,7 @@ if 'thread_id' not in st.session_state:
 
 # List to store thread ids
 if 'chat_threads' not in st.session_state:
+    threads = retrieve_all_threads()
     st.session_state['chat_threads'] = []
 
 # Add thread
