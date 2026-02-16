@@ -1,7 +1,6 @@
 import streamlit as st
 from langgraph_backend import chatBot
-from langchain_core.messages import HumanMessage
-import uuid
+from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
 from sqlite_db import save_thread_metadata
 
 
@@ -110,16 +109,51 @@ if user_input:
         st.markdown(user_input)
 
     # Stream the assistant response
-    CONFIG = {'configurable': {'thread_id': st.session_state['thread_id']}}
+    CONFIG = {
+        "configurable": {"thread_id": st.session_state["thread_id"]},
+        "metadata":{"thread_id": st.session_state["thread_id"]},
+        "run_name": "chat_turn"
+        }
+
+
     with st.chat_message('assistant'):
-        ai_message = st.write_stream(
-            message_chunk.content for message_chunk, metadata in chatBot.stream(
+        # Mutable holder so the generator can set/modify it
+        status_holder = {"box": None}
+
+        def ai_only_stream():
+            for message_chunk, metadata in chatBot.stream(
                 {'messages': [HumanMessage(content=user_input)]},
                 config=CONFIG,
                 stream_mode='messages'
+            ):
+                # status container for tool runs
+                if isinstance(message_chunk, ToolMessage):
+                    tool_name = getattr(message_chunk, "name", "tool")
+                    if status_holder["box"] is None:
+                        status_holder["box"] = st.status(
+                            f"🔧 Using `{tool_name}` …",
+                            expanded=True
+                        )
+                    else:
+                        status_holder["box"].update(
+                            label=f"🔧 Using `{tool_name}` …",
+                            state="running",
+                            expanded=True,
+                        )
+
+                # Stream only assistant token
+                if isinstance(message_chunk, AIMessage):
+                    yield message_chunk.content
+
+        ai_message = st.write_stream(ai_only_stream())
+
+        # Finalize only if a tool was actually used
+        if status_holder["box"] is not None:
+            status_holder["box"].update(
+                label="✅ Tool finished", state="complete", expanded=False
             )
-        )
-    
+
+    # Store the message
     st.session_state['message_history'].append({'role': 'assistant', 'content': ai_message})
     
     # Get current thread

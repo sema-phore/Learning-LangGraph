@@ -15,12 +15,12 @@ from langchain_core.tools import tool
 load_dotenv()
 
 #--------------- Langsmith project name -----------------------
-os.environ["LANGSMITH_PROJECT"] = "Chatbot-Project"
+os.environ["LANGSMITH_PROJECT"] = "LangGraph-Chatbot"
 
 
 
 # ------------------ sqlite connection object --------------
-from sqlite_db import conn
+from sqlite_functions import conn
 
 
 # -------------- Tools Integration -----------------
