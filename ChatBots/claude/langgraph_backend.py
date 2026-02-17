@@ -12,6 +12,8 @@ from langgraph.prebuilt import ToolNode, tools_condition
 from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_core.tools import tool
 
+from utility_tools import search_tool, get_stock_price, calculator
+
 load_dotenv()
 
 #--------------- Langsmith project name -----------------------

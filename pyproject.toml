@@ -8,6 +8,7 @@ dependencies = [
     "ddgs>=9.10.0",
     "ipykernel>=7.2.0",
     "langchain>=1.2.9",
+    "langchain-chroma>=1.1.0",
     "langchain-classic>=1.0.1",
     "langchain-community>=0.4.1",
     "langchain-core>=1.2.9",
@@ -15,6 +16,7 @@ dependencies = [
     "langgraph>=1.0.8",
     "langgraph-checkpoint-sqlite>=3.0.3",
     "notebook>=7.5.3",
+    "pypdf>=6.7.0",
     "python-dotenv>=1.2.1",
     "streamlit>=1.54.0",
 ]
